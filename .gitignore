@@ -1,0 +1,16 @@
+# macOSの管理ファイル
+.DS_Store
+
+# ローカル環境の設定
+.claude/
+
+# ビルド時に作られる一時ファイル
+_build/.cache/
+_build/__pycache__/
+__pycache__/
+*.pyc
+_build/.bin/
+
+# 元データ（公開リポジトリには載せない）
+image/
+HP_sample/
