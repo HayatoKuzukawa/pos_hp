@@ -6,10 +6,11 @@
   // ヘッダーの影・スマホ下部固定ボタン
   var header = document.querySelector('.site-header');
   var floatBar = document.querySelector('.float-bar');
+  var floatFrom = document.querySelector('.home-hero') ? -1 : 400; // トップは最初から表示する
   function onScroll() {
     var y = window.scrollY || window.pageYOffset;
     if (header) header.classList.toggle('is-scrolled', y > 10);
-    if (floatBar) floatBar.classList.toggle('is-show', y > 400);
+    if (floatBar) floatBar.classList.toggle('is-show', y > floatFrom);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();

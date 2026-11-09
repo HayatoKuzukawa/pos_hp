@@ -93,7 +93,7 @@ SRC_IMG = os.path.join(ROOT, "image")
 BUILD_DIR = os.path.dirname(os.path.abspath(__file__))
 # サイト用ファイル名: (image/ の元ファイル名, 長辺の最大px)
 PHOTOS = {
-    "hero-studio-class": ("back04.png", 2000),
+    "hero-studio-class": ("back05.jpg", 2000),
     "about-hero": ("AI_IMG_0848k1.png", 1264),
     "price-hero": ("AI_IMG_3165k1.png", 1200),
     "flow-hero": ("IMG_9144.jpg", 1800),
@@ -214,10 +214,10 @@ def build_photos():
 
     # キャッチのSVG：Illustratorの黒(#231815)をサイトの紺色に置き換えて書き出す
     def write_catch():
-        svg = open(os.path.join(SRC_IMG, "catch.svg"), encoding="utf-8").read().replace("#231815", "#1d3a4a")
-        with open(os.path.join(IMG_DIR, "catch.svg"), "w", encoding="utf-8") as f:
+        svg = open(os.path.join(SRC_IMG, "catch01.svg"), encoding="utf-8").read().replace("#231815", "#1d3a4a")
+        with open(os.path.join(IMG_DIR, "catch01.svg"), "w", encoding="utf-8") as f:
             f.write(svg)
-    run(os.path.join(IMG_DIR, "catch.svg"), os.path.join(SRC_IMG, "catch.svg"), "navy", write_catch)
+    run(os.path.join(IMG_DIR, "catch01.svg"), os.path.join(SRC_IMG, "catch01.svg"), "navy", write_catch)
     # aboutの「こんな方におすすめ」のイラスト：4枚の縮尺をそろえるため、全部同じ倍率（50%）で縮小
     for i in range(1, 5):
         name = f"about0{i}.png"
@@ -227,7 +227,7 @@ def build_photos():
             ["sips", "-z", str(h // 2), str(w // 2), src, "--out", d], check=True, capture_output=True))
 
     # Illustratorで作成した手書き風SVG（色はそのまま使う）
-    for name in ("subcatch.svg", "fight.svg", "try.svg", "check.svg", "welove.svg"):
+    for name in ("subcatch.svg", "subcatch01.svg", "fight.svg", "try.svg", "check.svg", "welove.svg"):
         run(os.path.join(IMG_DIR, name), os.path.join(SRC_IMG, name), "copy",
             lambda name=name: shutil.copy2(os.path.join(SRC_IMG, name), os.path.join(IMG_DIR, name)))
     run(os.path.join(IMG_DIR, "logo.png"), os.path.join(SRC_IMG, "logo.png"), "copy",
@@ -665,17 +665,12 @@ def fmt_date(d):
     return d.replace("-", ".")
 
 
-# トップの手書き風キャッチ（Illustratorで作成した image/catch.svg）
+# トップの手書き風キャッチ（Illustratorで作成した image/catch01.svg）
 CATCH_TEXT = "今日の一歩が、明日のわたしを変える。"
 
 
 def hero_catch():
-    vb = re.search(r'viewBox="([\d.\s-]+)"', open(os.path.join(IMG_DIR, "catch.svg"), encoding="utf-8").read()).group(1).split()
-    w, h = round(float(vb[2])), round(float(vb[3]))
-    url = img_url("catch.svg")
-    return (f'<p class="hero-catch"><span class="hero-catch__stroke hero-catch__stroke--1"></span>'
-            f'<span class="hero-catch__stroke hero-catch__stroke--2"></span>'
-            f'<img src="{url}" alt="{CATCH_TEXT}" width="{w}" height="{h}"></p>')
+    return f'<p class="hero-catch">{svg_img("catch01.svg", CATCH_TEXT)}</p>'
 
 
 # Illustratorで作成したSVGを、viewBoxの縦横比つきの<img>として出力する
@@ -686,9 +681,12 @@ def svg_img(name, alt, cls=""):
     return f'<img{cls_attr} src="{img_url(name)}" alt="{alt}" width="{w}" height="{h}">'
 
 
-# 「好きなだけ通える」の手書き風サブキャッチ（image/subcatch.svg）
+# 「好きなだけ通える」の手書き風サブキャッチ（PCは image/subcatch.svg、スマホは1行の image/subcatch01.svg）
 def sub_catch():
-    return svg_img("subcatch.svg", "好きなだけ通える", "suki")
+    vb = re.search(r'viewBox="([\d.\s-]+)"', open(os.path.join(IMG_DIR, "subcatch01.svg"), encoding="utf-8").read()).group(1).split()
+    w, h = round(float(vb[2])), round(float(vb[3]))
+    return (f'<span class="suki-row"><picture><source media="(max-width: 520px)" srcset="{img_url("subcatch01.svg")}" width="{w}" height="{h}">'
+            f'{svg_img("subcatch.svg", "好きなだけ通える", "suki")}</picture></span>')
 
 
 # ================================================================= TOP
@@ -735,11 +733,16 @@ def build_home():
 
     body = f"""<section class="home-hero">
   <img class="leaves leaves--tl" src="/assets/img/leaves.svg" alt="" aria-hidden="true">
-  <div class="home-hero__media">{img("hero-studio-class.jpg", "PILATES ONE STEPのスタジオでマシンピラティスをする女性たち", eager=True)}</div>
+  <div class="home-hero__media">{img("hero-studio-class.jpg", "PILATES ONE STEPのスタジオでマシンピラティスをする女性たち", eager=True)}
+    <svg class="home-hero__wave" viewBox="0 0 681 120" preserveAspectRatio="none" aria-hidden="true">
+      <path class="home-hero__wave-back" d="M0,92 C60,62 130,42 210,42 C330,42 380,62 470,58 C560,54 630,30 681,4 L681,120 L0,120 Z"/>
+      <path class="home-hero__wave-front" d="M0,120 C60,90 120,52 210,46 C330,40 400,66 490,68 C570,70 630,50 681,38 L681,120 L0,120 Z"/>
+    </svg>
+  </div>
   <div class="home-hero__body">
     <div class="home-hero__copy">
       {hero_catch()}
-      <h1><small>福岡市中央区 平尾・赤坂</small>女性専用<br>ピラティススタジオ</h1>
+      <h1><small>福岡市中央区 平尾・赤坂</small><span class="home-hero__title">女性専用<br><span class="home-hero__title-line">ピラティススタジオ</span></span></h1>
       <ul class="home-hero__badges">
         <li>{icon("users")}<b>少人数制<br>レッスン</b><span class="cap">最大<em>6</em>名まで</span></li>
         <li>{icon("woman")}<b>女性専用</b><span class="cap">安心して<br>通える環境</span></li>
@@ -781,7 +784,6 @@ def build_home():
     {sec_title("料金プラン", "続けやすいシンプルな料金プランをご用意しています。", "PRICE")}
     <div class="price-cards">
       <article class="pc pc--main reveal">
-        <span class="pc__ribbon">おすすめ</span>
         <p class="pc__lead">好きなだけ通えて、しっかり変わる！</p>
         <h3 class="pc__ttl"><span class="burst">通い放題</span></h3>
         <p class="pc__price"><span class="pc__unit">月額</span><span class="pc__num">13,200</span><span class="pc__yen">円</span><span class="pc__tax">（税込）</span></p>
@@ -1080,7 +1082,6 @@ def build_price():
   <div class="container">
     <h2 class="sr-only">月額プラン</h2>
     <div class="plan-main reveal">
-      <span class="plan-main__ribbon">人気No.1</span>
       <div class="plan-main__body">
         <h3 class="plan-main__name" style="font-family:var(--serif);font-size:clamp(36px,5vw,56px);letter-spacing:.1em;font-weight:700">通い放題</h3>
         <p class="plan-main__price"><span class="m">月額</span><span class="n">13,200</span><span class="y">円</span><span class="t">（税込）</span></p>
@@ -1634,7 +1635,7 @@ def build_preview():
     if os.path.isdir(PREVIEW):
         shutil.rmtree(PREVIEW)
     shutil.copytree(OUT, PREVIEW)
-    attr = re.compile(r'((?:href|src|action)=")/(?!/)([^"]*)"')
+    attr = re.compile(r'((?:href|src|srcset|action)=")/(?!/)([^"]*)"')
     for dirpath, _, files in os.walk(PREVIEW):
         for fn in files:
             if not fn.endswith(".html"):
