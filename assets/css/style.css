@@ -203,6 +203,8 @@ button { font: inherit; }
 /* 背景写真と重なっても読めるよう、料金の後ろに白いぼかしを敷く */
 .home-hero__price::before { content: ""; position: absolute; z-index: -1; inset: -18px -50px -14px 90px; border-radius: 50%; background: radial-gradient(ellipse at 50% 55%, rgba(255,255,255,.95) 35%, rgba(255,255,255,.7) 55%, rgba(255,255,255,0) 75%); filter: blur(10px); pointer-events: none; }
 @media (max-width: 520px) { .home-hero__price { flex-wrap: wrap; } }
+.home-hero__wave { display: none; }
+.suki-row, .suki-row picture { display: contents; }
 /* 「好きなだけ通える！」：ピンクの丸い吹き出し（しっぽで金額を指す） */
 .suki { flex: none; width: 138px; height: auto; margin: 0 12px 0 -4px; }
 .home-hero__price .label { font-family: var(--serif); font-weight: 700; font-size: 22px; color: var(--navy); }
@@ -250,7 +252,6 @@ button { font: inherit; }
 .pc { position: relative; border-radius: 14px; padding: 28px 24px; text-align: center; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Zen Maru Gothic", var(--sans); color: var(--navy); }
 .pc--main { border: 2px solid #f7a9c5; background: linear-gradient(180deg, #fff3f7, #fff 70%); }
 .pc--trial { border: 2px solid #bfe7e3; background: linear-gradient(180deg, #ebf8f7, #fff 75%); }
-.pc__ribbon { position: absolute; left: -8px; top: -16px; background: linear-gradient(90deg, #f6639a, var(--pink-d)); color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .12em; padding: 5px 20px; border-radius: 999px 999px 999px 0; box-shadow: 0 6px 14px rgba(239,79,136,.3); }
 .pc__lead { font-size: 13.5px; font-weight: 700; color: var(--pink-d); letter-spacing: .06em; margin-bottom: 6px; }
 .pc--trial .pc__lead { color: var(--teal-dd); margin-top: 13px; } /* 両側のカードと見出しの高さをそろえる */
 .pc--trial .pc__price { margin-top: -6px; } /* 0円を少し上げる */
@@ -486,8 +487,6 @@ button { font: inherit; }
 
 /* ---------- price page ---------- */
 .plan-main { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; border: 2px solid #f4a6c1; border-radius: 14px; padding: 18px; background: linear-gradient(120deg, #fff, #fff7fa); position: relative; box-shadow: 0 10px 30px rgba(239, 79, 136, .08); }
-.plan-main__ribbon { position: absolute; top: -18px; left: 18px; background: linear-gradient(90deg, #f6639a, var(--pink-d)); color: #fff; font-family: var(--serif); font-weight: 700; font-size: 24px; padding: 4px 26px; border-radius: 4px; box-shadow: 0 6px 16px rgba(239,79,136,.3); }
-.plan-main__ribbon::after { content: ""; position: absolute; right: -14px; top: 0; bottom: 0; width: 14px; background: inherit; clip-path: polygon(0 0, 100% 50%, 0 100%); }
 .plan-main__body { padding: 40px 18px 10px 30px; container-type: inline-size; }
 .plan-main h2 { font-family: var(--serif); font-size: clamp(36px, 5vw, 56px); letter-spacing: .1em; font-weight: 700; }
 /* 枠の幅に合わせて全体を縮小し、（税込）が折り返さず必ず「円」の右に来るようにする */
@@ -674,7 +673,7 @@ button { font: inherit; }
 }
 @media (max-width: 860px) {
   :root { --header-h: 64px; }
-  body { font-size: 14.5px; padding-bottom: 64px; }
+  body { font-size: 14.5px; padding-bottom: 66px; }
   .section { padding: 64px 0; }
   .section + .section.section--even { padding-top: 64px; }
   .sec-title { margin-bottom: 32px; }
@@ -703,22 +702,29 @@ button { font: inherit; }
   .hero__catch { font-size: 30px; }
 
   .home-hero { padding-top: 0; }
-  /* スマホのトップ：写真を画面いっぱいに見せ、キャッチは上、見出しは下の白いぼかしの上に置く */
-  .home-hero { --photo-h: clamp(420px, 133vw, 640px); --overlap: 170px; }
+  /* スマホのトップ（見本 SP_topimage）：写真は3人を中心に切り取り、下端を波形にして本文を中央にそろえる */
+  .home-hero { --photo-h: 72.7vw; --overlap: 18px; --hero-bg: #f4fbfa; background: linear-gradient(180deg, var(--hero-bg) 0%, #fff 70%); }
   .home-hero__media { position: relative; inset: auto; height: var(--photo-h); overflow: hidden; }
-  .home-hero__media img { position: absolute; left: 0; bottom: 0; height: 130%; object-position: 54% 50%; } /* 写真の上（天井）を切る */
-  .home-hero__media::after { bottom: -1px; }
-  .home-hero__media::after { background: linear-gradient(0deg, #fff 0%, rgba(255,255,255,.96) 24%, rgba(255,255,255,.72) 33%, rgba(255,255,255,0) 44%), linear-gradient(180deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,0) 26%); }
+  .home-hero__media img { position: absolute; left: -84%; top: -69%; width: 265%; max-width: none; height: auto; }
+  .home-hero__media::after { background: linear-gradient(180deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,0) 34%); }
+  .home-hero__wave { display: block; position: absolute; z-index: 1; left: 0; bottom: -1px; width: 100%; height: 17.6%; }
+  .home-hero__wave-back { fill: rgba(190,232,226,.72); }
+  .home-hero__wave-front { fill: var(--hero-bg); }
   .home-hero__body { margin-top: calc(var(--overlap) * -1); }
-  .home-hero .leaves--tl { display: none; }
-  .home-hero__badges { gap: 8px; }
-  .home-hero__badges li { width: 104px; height: 104px; }
-  .home-hero__badges li b { font-size: 13px; }
-  .home-hero__badges li .ico { font-size: 24px; margin-bottom: 3px; }
-  .home-hero__badges .cap { font-size: 10.5px; }
+  .home-hero .leaves--tl, .home-hero .scroll-sign { display: none; }
+  .home-hero__copy { margin-inline: auto; }
+  /* 見出し：地名を下に回し、2行目の左右に細い線を引く */
+  .home-hero h1 { display: flex; flex-direction: column; text-align: center; font-size: clamp(23px, 6.3vw, 36px); line-height: 1.4; font-weight: 600; }
+  .home-hero h1 small { order: 2; margin: 6px 0 0; font-size: 12.5px; }
+  .home-hero__title-line { display: flex; align-items: center; gap: 14px; }
+  .home-hero__title-line::before, .home-hero__title-line::after { content: ""; flex: 1; height: 1px; background: var(--teal); opacity: .6; }
+  .home-hero__badges { gap: 8px; justify-content: center; margin: 16px 0 14px; }
+  .home-hero__badges li { width: 104px; height: 104px; background: radial-gradient(circle at 50% 42%, #fff 58%, #eef9f7 100%); box-shadow: 0 6px 18px rgba(79,189,181,.16); }
+  .home-hero__badges li b { font-family: var(--serif); font-size: 13px; font-weight: 600; }
+  .home-hero__badges li .ico { font-size: 24px; margin-bottom: 3px; color: var(--teal-d); }
   .suki { width: 112px; margin-right: 8px; }
-  .home-hero__copy .btn { width: 100%; }
-  .home-hero__stores { gap: 12px; margin-top: 34px; }
+  .home-hero__copy .btn { width: calc(100% - 16px); margin-inline: 8px; }
+  .home-hero__stores { gap: 12px; margin-top: 24px; }
   .store-tile__label { left: 12px; top: 18px; }
   .store-tile__label .script { font-size: 34px; }
   .store-tile__label b { font-size: 14px; }
@@ -770,11 +776,12 @@ button { font: inherit; }
   .footer-stores span { display: block; } /* 店名・郵便番号／住所／建物名で改行 */
   .footer-legal, .footer-info .sns { justify-content: flex-start; }
 
-  .float-bar { display: grid; grid-template-columns: 1.4fr 1fr; position: fixed; inset: auto 0 0; z-index: 90; height: 64px; box-shadow: 0 -4px 18px rgba(29,58,74,.12); transform: translateY(100%); transition: transform .35s; }
+  .float-bar { display: grid; grid-template-columns: 1.1fr 1fr; gap: 8px; padding: 9px 10px; background: rgba(255,255,255,.96); position: fixed; inset: auto 0 0; z-index: 90; height: 66px; box-shadow: 0 -4px 18px rgba(29,58,74,.12); transform: translateY(100%); transition: transform .35s; }
   .float-bar.is-show { transform: none; }
   .float-bar a { display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 14px; letter-spacing: .06em; }
+  .float-bar a { border-radius: 999px; }
   .float-bar a:first-child { background: linear-gradient(90deg, #f6639a, var(--pink-d)); color: #fff; }
-  .float-bar a:last-child { background: #fff; color: var(--teal-dd); font-size: 13px; }
+  .float-bar a:last-child { background: #fff; color: var(--teal-dd); font-size: 13px; border: 1.5px solid var(--teal); }
 }
 @media (max-width: 520px) {
   .container, .container--narrow, .hero__body, .home-hero__body, .cta-band__body { width: calc(100% - 32px); }
@@ -796,18 +803,21 @@ button { font: inherit; }
   .home-hero__stores { grid-template-columns: 1fr 1fr; }
   .store-tile { aspect-ratio: 4 / 3; }
   /* トップの丸と料金：スマホでも大きく見せる（「好きなだけ通える」は料金の上の行へ） */
-  .home-hero__badges { gap: 4px; margin-inline: -8px; }
+  .home-hero__badges { gap: 6px; }
   .home-hero__badges li { flex: 1; width: auto; height: auto; aspect-ratio: 1; }
-  .home-hero__badges li b { font-size: 14.5px; }
-  .home-hero__badges li .ico { font-size: 28px; }
-  .home-hero__badges .cap { font-size: 11.5px; }
+  .home-hero__badges li b { font-size: 14px; }
+  .home-hero__badges li .ico { font-size: 27px; }
   /* 月額〜（税込）を1つの塊として中央に置き、チェック項目は「月額」の左端にそろえる */
   .home-hero__offer { width: fit-content; max-width: 100%; margin-inline: auto; }
-  .home-hero__offer .checks { margin-top: 8px; }
+  .home-hero__offer .checks { margin: 8px 0 18px; }
+  .home-hero__offer .checks li { font-size: 13px; letter-spacing: .04em; }
   .home-hero__price { display: grid; grid-template-columns: auto auto auto; align-items: baseline; gap: 0 8px; }
   .home-hero__price::before { display: none; }
-  .suki { grid-column: 1 / -1; width: min(104px, 28vw); margin: 0 0 -4px -2px; }
-  .home-hero__price .num { font-size: 16.5vw; }
+  /* 「好きなだけ通える」は左右に細い線を引いて中央に置く */
+  .suki-row { display: flex; grid-column: 1 / -1; align-items: center; gap: 12px; margin: 10px 0 14px; }
+  .suki-row::before, .suki-row::after { content: ""; flex: 1; height: 1px; background: var(--pink); opacity: .4; }
+  .suki { width: min(170px, 45vw); margin: 0; }
+  .home-hero__price .num { font-size: 15.5vw; background: linear-gradient(180deg, #f0719f, #db3f76); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .2em; margin-bottom: -.2em; } /* 「,」の下側まで色が付くよう枠を広げる */
   .home-hero__price .label { font-size: 5.4vw; }
   .home-hero__price .tax { font-size: 12px; margin-left: -6px; }
   .timeline li { grid-template-columns: 1fr; gap: 2px; }
@@ -853,6 +863,10 @@ button { font: inherit; }
 /* hero badge: 定員表示 */
 .home-hero__badges .cap { display: block; font-size: 11.5px; font-weight: 500; color: var(--muted); margin-top: 3px; line-height: 1.4; }
 .home-hero__badges .cap em { font-style: normal; font-family: var(--serif); font-weight: 700; font-size: 18px; color: var(--pink); margin: 0 1px; line-height: 1; }
+@media (max-width: 860px) {
+  .home-hero__badges .cap { font-size: 10px; }
+  .home-hero__badges .cap em { font-size: 16px; }
+}
 .form-msg--error { background: var(--pink-l); color: var(--pink-d); }
 .form-msg a { text-decoration: underline; }
 
@@ -873,14 +887,11 @@ button { font: inherit; }
   .story__logo > div { padding: 26px 24px 30px; }
 }
 
-/* 手書き風キャッチ（トップ）：image/catch.svg ＋ 各行の下にピンクの線 */
-.hero-catch { position: relative; width: min(440px, 88vw); margin: 30px 0 30px; }
+/* 手書き風キャッチ（トップ）：image/catch01.svg（ピンクの線はSVGに含まれる） */
+.hero-catch { position: relative; width: min(454px, 88vw); margin: 6px 0 10px; }
 .hero-catch img { position: relative; z-index: 1; display: block; width: 100%; height: auto; }
-.hero-catch__stroke { position: absolute; z-index: 0; height: 13%; background: url("../img/brush-pink.svg") no-repeat center / 100% 100%; transform-origin: left center; }
-.hero-catch__stroke--1 { left: 2%; top: 62%; width: 62%; transform: rotate(-11deg); }
-.hero-catch__stroke--2 { left: 13%; top: 94.5%; width: 88%; transform: rotate(-10deg); }
 @media (max-width: 860px) {
   /* スマホ：キャッチは写真の左上に重ねる（本文の上端から写真の上端までさかのぼる） */
-  .hero-catch { position: absolute; z-index: 3; left: 4px; top: calc((var(--photo-h) - var(--overlap)) * -1 + 12px); width: min(300px, 80vw); margin: 0; }
+  .hero-catch { position: absolute; z-index: 3; left: 4px; top: calc((var(--photo-h) - var(--overlap)) * -1 + 10px); width: min(268px, 70vw); margin: 0; }
   .hero-catch img { filter: drop-shadow(0 0 3px rgba(255,255,255,.95)) drop-shadow(0 0 8px rgba(255,255,255,.8)); }
 }
