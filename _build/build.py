@@ -146,6 +146,29 @@ FAVICONS = [
 FAVICON_LINKS = ('<link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">'
                  '<link rel="icon" href="/assets/img/favicon-192.png" sizes="192x192" type="image/png">'
                  '<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">')
+# Googleのタグ（現サイトと同じGTM・GA4）。確認用の preview/ からは build_preview() で取り除く
+GTM_ID = "GTM-KJQLTH5S"
+GA_ID = "G-X0ECD1JVMX"
+GTM_HEAD = f"""<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){{w[l]=w[l]||[];w[l].push({{'gtm.start':
+new Date().getTime(),event:'gtm.js'}});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+}})(window,document,'script','dataLayer','{GTM_ID}');</script>
+<!-- End Google Tag Manager -->"""
+GTAG = f"""<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){{dataLayer.push(arguments);}}
+gtag('js', new Date());
+gtag('config', '{GA_ID}');
+</script>
+<!-- End Google tag (gtag.js) -->"""
+GTM_BODY = f"""<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={GTM_ID}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->"""
 # 人物を切り抜いて使う写真: サイト用ファイル名: (image/ の元ファイル名, 横幅px)
 CUTOUTS = {
     "private-cutout": ("IMG_0495-.png", 520),
@@ -497,6 +520,7 @@ def page(path, title, desc, body, current=None, lds=(), og_image="hero-studio-cl
     doc = f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
+{GTM_HEAD}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{esc(title)}</title>
@@ -520,8 +544,10 @@ def page(path, title, desc, body, current=None, lds=(), og_image="hero-studio-cl
 <link rel="stylesheet" href="/assets/css/style.css?v={ASSET_VER}">
 {head_extra}
 {ld_html}
+{GTAG}
 </head>
 <body>
+{GTM_BODY}
 {header(current)}
 <main id="main">
 {body}
@@ -1609,10 +1635,15 @@ def build_misc():
     with open(os.path.join(OUT, "robots.txt"), "w") as f:
         f.write(f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")
     with open(os.path.join(OUT, "404.html"), "w", encoding="utf-8") as f:
-        f.write(f"""<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+        f.write(f"""<!DOCTYPE html><html lang="ja"><head>
+{GTM_HEAD}
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
 <title>ページが見つかりません｜{BRAND}</title>{FAVICON_LINKS}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@600&display=swap">
-<link rel="stylesheet" href="/assets/css/style.css?v={ASSET_VER}"></head><body style="padding-top:0">
+<link rel="stylesheet" href="/assets/css/style.css?v={ASSET_VER}">
+{GTAG}
+</head><body style="padding-top:0">
+{GTM_BODY}
 <section class="hero-mini" style="min-height:100vh;display:grid;place-items:center;text-align:center"><div class="container">
 <p class="hero__en">404</p><h1>お探しのページが見つかりませんでした</h1>
 <p style="margin:16px 0 30px">URLが変更されたか、ページが削除された可能性があります。</p>
@@ -1636,6 +1667,8 @@ def build_preview():
         shutil.rmtree(PREVIEW)
     shutil.copytree(OUT, PREVIEW)
     attr = re.compile(r'((?:href|src|srcset|action)=")/(?!/)([^"]*)"')
+    # 確認用ページの閲覧がアクセス解析に数えられないよう、Googleのタグは外す
+    tags = re.compile(r"\n?<!-- Google (?:Tag Manager|tag)[^>]*-->.*?<!-- End Google (?:Tag Manager|tag)[^>]*-->", re.S)
     for dirpath, _, files in os.walk(PREVIEW):
         for fn in files:
             if not fn.endswith(".html"):
@@ -1654,7 +1687,7 @@ def build_preview():
             with open(path, encoding="utf-8") as f:
                 doc = f.read()
             with open(path, "w", encoding="utf-8") as f:
-                f.write(attr.sub(rel, doc))
+                f.write(attr.sub(rel, tags.sub("", doc)))
 
 
 if __name__ == "__main__":

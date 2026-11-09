@@ -26,9 +26,15 @@ python3 _build/build.py
 デザインの変更は `site/assets/css/style.css` を直接編集します。
 
 ## 公開前にやること
-- **お問い合わせフォームのメールアドレス**：送信処理は `site/contact/send.php`（PHP）です。ファイル冒頭の2行を設定してください。
-  - `MAIL_TO` … お問い合わせを受け取るアドレス（初期値 `info@onestep-p.jp` は仮）
-  - `MAIL_FROM` … 送信元アドレス。迷惑メール扱いを避けるため、サーバーと同じドメイン（`@onestep-p.jp`）のアドレスにしてください。
-  - 送信後は `/contact/thanks/`（完了ページ）へ移動し、お客様には自動返信メールが届きます。
-  - 公開後、実際にフォームから1件送信して、両方のメールが届くか確認してください。
+- **お問い合わせフォーム**：送信処理は `site/contact/send.php`（PHP）です。受信・送信元とも `pilates@onestep-p.jp` に設定済みです。
+  - 送信後は `/contact/thanks/`（完了ページ）へ移動し、お客様には自動返信メールが届きます。自動返信にお客様が返信すると `pilates@onestep-p.jp` に届きます。
+  - スタジオ宛てのメールに返信すると、お客様宛てに送られます（Reply-To にお客様のアドレスが入っています）。
+  - 同じ接続元からの送信は1時間に5回までです（自動返信を悪用した迷惑メール対策）。
+- **Hotmail・Outlook に届きにくい問題の対策**
+  - `send.php` 側：送信元（From）と配送上の差出人（`-f`）を `pilates@onestep-p.jp` にそろえ、SPF と DMARC に通るようにしています。WordPress 時代はここが `sakura.ne.jp` 名義になっていたため、Hotmail などで弾かれていた可能性が高いです。
+  - ドメインの設定（変更は不要です）
+    - DKIM：さくらのコントロールパネルで「利用する」に設定済みです。公開鍵も DNS に出ています（セレクタ `rs20250921`）。
+    - SPF：`v=spf1 a:www543.sakura.ne.jp mx ~all`
+    - DMARC：`p=none`（集計レポートの送り先は pilates@onestep-p.jp）
+  - 公開後、`@hotmail.co.jp`・`@outlook.jp`・`@gmail.com` のアドレスでフォームから1件ずつ送信し、自動返信が受信トレイに届くか（迷惑メールフォルダに入っていないか）を確認してください。Gmail で受け取ったメールの「メッセージのソースを表示」を開くと、SPF・DKIM・DMARC が PASS になっているか確認できます。
 - 公開後、Google Search Console に `https://onestep-p.jp/sitemap.xml` を送信してください。
