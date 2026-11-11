@@ -1402,8 +1402,10 @@ def build_contact():
     <div class="card form-card reveal">
       <h2>お問い合わせフォーム</h2>
       <p>ご質問・ご相談など、どんなことでもお気軽にお問い合わせください。スタッフが丁寧に対応いたします。お問い合わせの前に<a href="/faq/" style="color:var(--teal-d);text-decoration:underline">よくある質問</a>もあわせてご確認ください。</p>
+      <ol class="form-steps" aria-label="お問い合わせの流れ"><li class="is-current">入力</li><li>確認</li><li>送信完了</li></ol>
       <form class="contact-form" id="form" action="/contact/send.php" method="post">
         <p class="form-msg form-msg--error" style="margin:0 0 22px" hidden role="alert">送信できませんでした。入力内容をご確認のうえ、もう一度お試しください。解決しない場合は<a href="{LINE}" target="_blank" rel="noopener">LINE公式アカウント</a>からお問い合わせください。</p>
+        <div class="form-input">
         <div class="form-row"><label for="f-name">お名前<span class="req">必須</span></label><input id="f-name" name="name" type="text" autocomplete="name" placeholder="例）山田 花子" required></div>
         <div class="form-row"><label for="f-kana">フリガナ<span class="opt">任意</span></label><input id="f-kana" name="kana" type="text" placeholder="例）ヤマダ ハナコ"></div>
         <div class="form-row"><label for="f-mail">メールアドレス<span class="req">必須</span></label><input id="f-mail" name="email" type="email" autocomplete="email" placeholder="例）example@onestep-p.jp" required></div>
@@ -1417,6 +1419,15 @@ def build_contact():
         <p class="form-agree"><label><input type="checkbox" name="agree" value="1" required><a href="/policy/" target="_blank">プライバシーポリシー</a>に同意する</label></p>
         <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
         <div class="form-submit"><button class="btn btn--pink" type="submit">送信する{icon("arrow")}</button></div>
+        </div>
+        <div class="form-confirm" hidden>
+          <p class="form-confirm__lead">以下の内容で送信します。よろしければ「送信する」を押してください。</p>
+          <dl class="confirm-list"></dl>
+          <div class="form-confirm__btns">
+            <button class="btn btn--outline" type="button" data-form-back>修正する</button>
+            <button class="btn btn--pink" type="submit">送信する{icon("arrow")}</button>
+          </div>
+        </div>
       </form>
     </div>
 
@@ -1634,6 +1645,19 @@ def build_misc():
         f.write(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}</urlset>\n')
     with open(os.path.join(OUT, "robots.txt"), "w") as f:
         f.write(f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n")
+    # さくらのサーバー用。http→https は「常時SSL化」の設定で行う（ここで書くと転送が止まらなくなることがある）
+    with open(os.path.join(OUT, ".htaccess"), "w", encoding="utf-8") as f:
+        f.write("""ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# www 付きは www なしにそろえる
+RewriteCond %{HTTP_HOST} ^www\\.onestep-p\\.jp$ [NC]
+RewriteRule ^(.*)$ https://onestep-p.jp/$1 [R=301,L]
+# 旧WordPressのお問い合わせ確認・完了ページ
+RewriteRule ^(confirm|thx)/?$ /contact/ [R=301,L]
+</IfModule>
+""")
     with open(os.path.join(OUT, "404.html"), "w", encoding="utf-8") as f:
         f.write(f"""<!DOCTYPE html><html lang="ja"><head>
 {GTM_HEAD}

@@ -1,0 +1,10 @@
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# www 付きは www なしにそろえる
+RewriteCond %{HTTP_HOST} ^www\.onestep-p\.jp$ [NC]
+RewriteRule ^(.*)$ https://onestep-p.jp/$1 [R=301,L]
+# 旧WordPressのお問い合わせ確認・完了ページ
+RewriteRule ^(confirm|thx)/?$ /contact/ [R=301,L]
+</IfModule>
