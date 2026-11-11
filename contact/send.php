@@ -2,20 +2,29 @@
 /**
  * PILATES ONE STEP お問い合わせフォーム送信処理
  *
- * ▼ 公開前に設定してください
  *   MAIL_TO   : お問い合わせを受け取るメールアドレス
- *   MAIL_FROM : 送信元アドレス（サーバーと同じドメインのアドレス推奨。例 no-reply@onestep-p.jp）
+ *   MAIL_FROM : 送信元アドレス。さくらのサーバーに実在する onestep-p.jp のアドレスにする
+ *
+ * ▼ Hotmail・Outlook などに届きにくい問題への対策
+ *   送信元（From）と配送上の差出人（-f）をどちらも onestep-p.jp のアドレスにそろえ、
+ *   SPF・DMARC の判定に通るようにしている。お客様のアドレスは Reply-To にだけ入れる。
+ *   DKIM（電子署名）はさくらのコントロールパネルで有効化済み（セレクタ rs20250921）。
  */
-const MAIL_TO = 'info@onestep-p.jp';
-const MAIL_FROM = 'no-reply@onestep-p.jp';
+const MAIL_TO = 'pilates@onestep-p.jp';
+const MAIL_FROM = 'pilates@onestep-p.jp';
 const FROM_NAME = 'PILATES ONE STEP';
 const SITE_HOST = 'onestep-p.jp';
+
+// 同じ接続元からの送信回数の上限（自動返信を悪用した迷惑メール送信を防ぐ）
+const RATE_LIMIT = 5;
+const RATE_WINDOW = 3600;
 
 const THANKS_URL = '/contact/thanks/';
 const ERROR_URL = '/contact/?error=1#form';
 
 date_default_timezone_set('Asia/Tokyo');
-mb_language('Japanese');
+// 件名・本文は UTF-8 で送る（ISO-2022-JP だと「髙」「﨑」や①などが文字化けするため）
+mb_language('uni');
 mb_internal_encoding('UTF-8');
 
 function back_with_error()
@@ -88,6 +97,25 @@ $kana_label = $kana === '' ? '未記入' : $kana;
 $type_label = $type === '' ? '未選択' : $type;
 $sent_at = date('Y年n月j日 H:i');
 
+// 送信回数の制限（一時フォルダに接続元ごとの送信時刻を記録する）
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
+$rate_file = sys_get_temp_dir() . '/onestep-contact-' . md5($ip);
+$now = time();
+$times = [];
+if (is_file($rate_file)) {
+    $times = array_filter(
+        array_map('intval', explode(',', (string) file_get_contents($rate_file))),
+        function ($t) use ($now) {
+            return $t > $now - RATE_WINDOW;
+        }
+    );
+}
+if (count($times) >= RATE_LIMIT) {
+    back_with_error();
+}
+$times[] = $now;
+@file_put_contents($rate_file, implode(',', $times), LOCK_EX);
+
 $body = <<<EOT
 ホームページのお問い合わせフォームから送信がありました。
 
@@ -102,21 +130,25 @@ $body = <<<EOT
 
 ------------------------------
 送信日時：{$sent_at}
+
+※このメールに返信すると、お客様（{$email}）宛てに送られます。
 EOT;
 
 $from = mb_encode_mimeheader(FROM_NAME) . ' <' . MAIL_FROM . '>';
+// 配送上の差出人を onestep-p.jp にそろえる（ないと sakura.ne.jp 名義になり、Hotmail などで弾かれやすい）
 $params = '-f' . MAIL_FROM;
 
 // 1) スタジオ宛て
 $ok = mb_send_mail(
     MAIL_TO,
-    '【HPお問い合わせ】' . $type . '（' . $name . '様）',
+    '【HPお問い合わせ】' . ($type === '' ? '' : $type . '／') . $name . '様',
     $body,
     "From: {$from}\r\nReply-To: {$email}",
     $params
 );
 
 if (!$ok) {
+    error_log('[contact] スタジオ宛てメールの送信に失敗しました');
     back_with_error();
 }
 
@@ -141,8 +173,8 @@ $reply = <<<EOT
 {$message}
 ------------------------------
 
-※本メールは送信専用アドレスから自動でお送りしています。
-　このメールへのご返信にはお答えできません。
+※本メールは自動でお送りしています。
+　追加のご質問などは、このメールにそのままご返信ください。
 ※お心当たりのない場合は、お手数ですが本メールを破棄してください。
 
 無料体験レッスンのご予約はこちら
@@ -161,7 +193,7 @@ mb_send_mail(
     $email,
     '【PILATES ONE STEP】お問い合わせありがとうございます',
     $reply,
-    "From: {$from}",
+    "From: {$from}\r\nAuto-Submitted: auto-replied",
     $params
 );
 

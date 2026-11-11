@@ -155,14 +155,50 @@
         fields.forEach(function (f) { if (saved[f.name]) f.value = saved[f.name]; });
       } catch (err) { /* 保存領域が使えない環境では復元しない */ }
     }
-    form.addEventListener('submit', function () {
+    // 入力 → 確認 → 送信。確認表示はJSが使えるときだけ（使えない環境ではそのまま送信される）
+    var inputArea = form.querySelector('.form-input');
+    var confirmArea = form.querySelector('.form-confirm');
+    var steps = document.querySelectorAll('.form-steps li');
+    var confirming = false;
+    function setStep(n) {
+      steps.forEach(function (li, i) { li.classList.toggle('is-current', i === n); });
+    }
+    function showStep(isConfirm) {
+      confirming = isConfirm;
+      inputArea.hidden = isConfirm;
+      confirmArea.hidden = !isConfirm;
+      setStep(isConfirm ? 1 : 0);
+      var top = (document.querySelector('.form-steps') || form).getBoundingClientRect().top + window.pageYOffset - 100;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    }
+    function esc(s) {
+      return s.replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; });
+    }
+    if (inputArea && confirmArea) {
+      inputArea.querySelector('button[type=submit]').innerHTML = '入力内容を確認する' + inputArea.querySelector('button[type=submit]').innerHTML.replace(/^[^<]*/, '');
+      form.querySelector('[data-form-back]').addEventListener('click', function () { showStep(false); });
+    }
+    form.addEventListener('submit', function (e) {
+      if (inputArea && confirmArea && !confirming) {
+        e.preventDefault();
+        var rows = '';
+        fields.forEach(function (f) {
+          var row = f.closest('.form-row');
+          if (!row) return;
+          var label = row.querySelector('label').firstChild.textContent.trim();
+          var v = f.value.trim();
+          rows += '<dt>' + esc(label) + '</dt><dd>' + (v ? esc(v).replace(/\n/g, '<br>') : '<span class="confirm-list__empty">未入力</span>') + '</dd>';
+        });
+        confirmArea.querySelector('.confirm-list').innerHTML = rows;
+        showStep(true);
+        return;
+      }
       try {
         var data = {};
         fields.forEach(function (f) { data[f.name] = f.value; });
         sessionStorage.setItem(KEY, JSON.stringify(data));
       } catch (err) { /* noop */ }
-      var b = form.querySelector('button[type=submit]');
-      if (b) { b.disabled = true; b.style.opacity = '.6'; }
+      form.querySelectorAll('button[type=submit]').forEach(function (b) { b.disabled = true; b.style.opacity = '.6'; });
     });
   }
   if (location.pathname.indexOf('/contact/thanks') === 0) {
